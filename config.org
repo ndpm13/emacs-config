@@ -1,0 +1,800 @@
+#+TITLE: Naz's Emacs Config
+#+AUTHOR: Naz <ndpm13@ch-naseem.com>
+
+* Table of Contents :toc:
+- [[#important-stuff][Important Stuff]]
+  - [[#sourcing-scripts][Sourcing Scripts]]
+  - [[#vanilla-settings][Vanilla Settings]]
+- [[#look--appearance][Look & Appearance]]
+  - [[#disable-menubar-toolbars-and-scrollbars][Disable Menubar, Toolbars and Scrollbars]]
+  - [[#display-line-numbers-and-truncated-lines][Display Line Numbers and Truncated Lines]]
+  - [[#transparency][Transparency]]
+  - [[#fonts][Fonts]]
+  - [[#theme][Theme]]
+  - [[#dashboard][Dashboard]]
+- [[#keyboard][Keyboard]]
+  - [[#evil][Evil]]
+  - [[#general-keybindings][General Keybindings]]
+  - [[#minibuffer-esc][Minibuffer ESC]]
+  - [[#zoom-inout][Zoom in/out]]
+- [[#all-the-icons][All the icons]]
+- [[#org-mode][Org Mode]]
+  - [[#org-directory][Org Directory]]
+  - [[#correct-weekend][Correct Weekend]]
+  - [[#enabling-toc][Enabling TOC]]
+  - [[#enabling-org-bullets][Enabling Org Bullets]]
+  - [[#heading-sizes][Heading sizes]]
+  - [[#disable-electric-indent][Disable Electric Indent]]
+  - [[#source-code-block-tag-expansion][Source Code Block Tag Expansion]]
+  - [[#auto-tangle][Auto-tangle]]
+  - [[#org-roam][Org Roam]]
+- [[#dired][Dired]]
+- [[#ido][Ido]]
+- [[#sudo-edit][Sudo edit]]
+- [[#shells-and-terms][Shells and terms]]
+  - [[#eshell][Eshell]]
+  - [[#vterm][Vterm]]
+- [[#diminish][Diminish]]
+- [[#highlight-todo][Highlight Todo]]
+- [[#tldr][TLDR]]
+- [[#undo-tree][Undo tree]]
+- [[#ide][IDE]]
+  - [[#lsps][LSPs]]
+  - [[#flycheck][Flycheck]]
+  - [[#company][Company]]
+  - [[#apheleia][apheleia]]
+  - [[#magit][Magit]]
+  - [[#projectile][Projectile]]
+  - [[#rainbow][Rainbow]]
+
+* Important Stuff
+
+** Sourcing Scripts
+
+#+begin_src emacs-lisp
+(add-to-list 'load-path "~/.config/emacs/scripts/")
+
+(require 'elpaca-setup)
+(require 'buffer-move)
+(require 'doom-functions)
+#+end_src
+
+** Vanilla Settings
+
+#+begin_src emacs-lisp
+(setq backup-directory-alist '((".*" . "~/.local/share/trash")))
+#+end_src
+
+*** Identity Settings
+
+whoami?
+
+#+begin_src emacs-lisp
+(setq user-full-name "Naz"
+      user-mail-address "ndpm13@ch-naseem.com")
+#+end_src
+
+*** Normal scrolling behavior
+
+#+begin_src emacs-lisp
+(setq scroll-margin 10)
+(setq scroll-conservatively 10)
+#+end_src
+
+*** Disable recent files
+
+#+begin_src emacs-lisp
+(recentf-mode -1)
+#+end_src
+
+*** Tab bar
+
+#+begin_src emacs-lisp
+(setq tab-bar-close-button-show nil
+      tab-bar-new-button-show nil
+      tab-bar-auto-width-max '(125 20))
+#+end_src
+
+*** Autopair
+
+#+begin_src emacs-lisp
+(electric-pair-mode 1)
+(add-hook 'org-mode-hook (lambda ()
+           (setq-local electric-pair-inhibit-predicate
+                   `(lambda (c)
+                  (if (char-equal c ?<) t (,electric-pair-inhibit-predicate c))))))
+#+end_src
+
+*** Disable splash screen
+
+#+begin_src emacs-lisp
+(setq inhibit-splash-screen t)
+#+end_src
+
+* Look & Appearance
+
+** Disable Menubar, Toolbars and Scrollbars
+
+#+begin_src emacs-lisp
+(menu-bar-mode -1)
+(tool-bar-mode -1)
+(scroll-bar-mode -1)
+#+end_src
+
+** Display Line Numbers and Truncated Lines
+
+#+begin_src emacs-lisp
+(global-display-line-numbers-mode 1)
+(global-visual-line-mode t)
+(setq display-line-numbers-type 'relative)
+
+(dolist (mode '(shell-mode-hook
+		dired-mode-hook
+                ibuffer-mode-mode
+                eshell-mode-hook
+                term-mode-hook
+                vterm-mode-hook
+                dashboard-mode-hook
+                org-agenda-mode-hook))
+  (add-hook mode (lambda () (display-line-numbers-mode 0))))
+#+end_src
+
+** Transparency
+
+#+begin_src emacs-lisp
+(add-to-list 'default-frame-alist '(alpha-background . 90))
+#+end_src
+
+** Fonts
+
+#+begin_src emacs-lisp
+(set-face-attribute 'default nil
+                    :font "CaskaydiaCove Nerd Font"
+                    :height 130
+                    :weight 'medium)
+(set-face-attribute 'variable-pitch nil
+                    :font "CaskaydiaCove Nerd Font"
+                    :height 140
+                    :weight 'medium)
+(set-face-attribute 'fixed-pitch nil
+                    :font "CaskaydiaCove Nerd Font"
+                    :height 130
+                    :weight 'medium)
+;; Makes commented text and keywords italics.
+;; This is working in emacsclient but not emacs.
+;; Your font must have an italic face available.
+(set-face-attribute 'font-lock-comment-face nil
+                    :slant 'italic)
+(set-face-attribute 'font-lock-keyword-face nil
+                    :slant 'italic)
+
+(set-fontset-font t 'arabic (font-spec :family "Rubik" :size 22))
+
+;; This sets the default font on all graphical frames created after restarting Emacs.
+;; Does the same thing as 'set-face-attribute default' above, but emacsclient fonts
+;; are not right unless I also add this method of setting the default font.
+(add-to-list 'default-frame-alist '(font . "CaskaydiaCove Nerd Font-13"))
+
+;; Uncomment the following line if line spacing needs adjusting.
+;; (setq-default line-spacing 0.12)
+#+end_src
+
+** Theme
+
+#+begin_src emacs-lisp
+(use-package doom-themes
+  :ensure t
+  :demand t
+  :config
+  (setq doom-themes-enable-bold t
+	doom-themes-enable-italic t)
+  (load-theme 'doom-gruvbox t)
+  (doom-themes-org-config))
+
+(use-package doom-modeline
+  :ensure t
+  :init
+  (doom-modeline-mode 1)
+  (setq projectile-dynamic-mode-line nil)
+  ;; Set these early so they don't trigger variable watchers
+  (setq doom-modeline-bar-width 3
+        doom-modeline-github nil
+        doom-modeline-mu4e nil
+        doom-modeline-persp-name nil
+        doom-modeline-minor-modes nil
+        doom-modeline-major-mode-icon nil
+        doom-modeline-buffer-file-name-style 'relative-from-project
+        ;; Only show file encoding if it's non-UTF-8 and different line endings
+        ;; than the current OSes preference
+        doom-modeline-buffer-encoding 'nondefault
+        doom-modeline-default-eol-type (if (featurep :system 'windows) 1 0))
+  :config
+  (setq doom-modeline-height 41
+	doom-modeline-bar-width 5))
+#+end_src
+
+** Dashboard
+
+#+begin_src emacs-lisp
+(use-package dashboard
+  :ensure t
+  :init
+  (setq initial-buffer-choice 'dashboard-open)
+  (setq dashboard-set-heading-icons t)
+  (setq dashboard-set-file-icons t)
+  (setq dashboard-banner-logo-title "Emacs > Vim")
+  (setq dashboard-startup-banner "~/.config/emacs/dashboard/gnu.jpg")
+  (setq dashboard-center-content t)
+  (setq dashboard-set-file-icons nil)
+  (setq dashboard-navigation-cycle t)
+  (setq dashboard-projects-backend 'projectile)
+  (setq dashboard-items '((projects . 5)))
+  (setq dashboard-startupify-list '(dashboard-insert-banner
+                                    dashboard-insert-newline
+                                    dashboard-insert-banner-title
+                                    dashboard-insert-newline
+                                    dashboard-insert-items))
+
+  :diminish t
+  :config
+  (dashboard-setup-startup-hook)
+  (setq default-directory "~/")
+  (setq dashboard-projects-switch-function 'projectile-switch-project))
+
+(setq doom-fallback-buffer-name "*dashboard*")
+#+end_src
+
+* Keyboard
+
+** Evil
+
+#+begin_src emacs-lisp
+(use-package evil
+  :ensure t
+  :demand t
+  :init      ;; tweak evil's configuration before loading it
+  (setq evil-want-integration t) ;; This is optional since it's already set to t by default.
+  (setq evil-want-keybinding nil)
+  (setq evil-vsplit-window-right t)
+  (setq evil-split-window-below t)
+  (setq evil-want-Y-yank-to-eol t)
+  (setq evil-want-C-u-scroll t)
+  (evil-mode)
+  :config
+  (evil-define-key 'normal dired-mode-map
+    (kbd "h") 'dired-up-directory
+    (kbd "l") 'dired-open-file))
+(use-package evil-collection
+  :ensure t
+  :demand t
+  :after evil
+  :config
+  ;; (setq evil-collection-mode-list '(dashboard dired ibuffer help magit ediff info calendar bookmark))
+  (evil-collection-init))
+(use-package evil-surround
+  :ensure t
+  :demand t
+  :config
+  (global-evil-surround-mode 1))
+
+(with-eval-after-load 'evil-maps
+  (define-key evil-motion-state-map (kbd "SPC") nil)
+  (define-key evil-motion-state-map (kbd "RET") nil)
+  (define-key evil-motion-state-map (kbd "TAB") nil))
+;; Setting RETURN key in org-mode to follow links
+  (setq org-return-follows-link  t)
+#+end_src
+
+** General Keybindings
+
+#+begin_src emacs-lisp
+(use-package general
+  :ensure t
+  :demand t
+  :config
+  (general-evil-setup)
+  ;; set up 'SPC' as the global leader key
+  (general-create-definer my/leader-keys
+    :states '(normal insert visual emacs)
+    :keymaps 'override
+    :prefix "SPC" ;; set leader
+    :global-prefix "M-SPC") ;; access leader in insert mode
+  
+  (my/leader-keys
+   "f" '(:ignore t :wk "Find")
+   "f f" '(find-file :wk "Find file")
+   "f d" '(find-file :wk "Find directory")
+   "f r" '(recentf :wk "Find recent"))
+
+  (my/leader-keys
+   "d" '(:ignore t :wk "Dired")
+   "d j" '(dired-jump :wk "Dired jump to current"))
+
+  (my/leader-keys
+   "g" '(:ignore t :wk "Magit")
+   "g g" '(magit-status :wk "Magit"))
+  
+  (my/leader-keys
+   "o" '(:ignore t :wk "Open")
+   "o v" '(multi-vterm :wk "Create new vterm buffer"))
+
+  (my/leader-keys
+   "b" '(:ignore t :wk "Buffer")
+   "b b" '(switch-to-buffer :wk "Switch buffer")
+   "b i" '(ibuffer :wk "Ibuffer")
+   "b d" '(kill-current-buffer :wk "Kill this buffer")
+   "b k" '(kill-current-buffer :wk "Kill this buffer")
+   "b n" '(next-buffer :wk "Next buffer")
+   "b p" '(previous-buffer :wk "Previous buffer")
+   "b r" '(revert-buffer :wk "Reload buffer"))
+
+  (my/leader-keys
+   "e" '(:ignore t :wk "Evaluate")    
+   "e b" '(eval-buffer :wk "Evaluate elisp in buffer")
+   "e d" '(eval-defun :wk "Evaluate defun containing or after point")
+   "e e" '(eval-expression :wk "Evaluate and elisp expression")
+   "e l" '(eval-last-sexp :wk "Evaluate elisp expression before point")
+   "e r" '(eval-region :wk "Evaluate elisp in region")) 
+
+  (my/leader-keys
+   "h" '(:ignore t :wk "Help")
+   "h f" '(describe-function :wk "Describe function")
+   "h v" '(describe-variable :wk "Describe variable")
+   "h b" '(describe-bindings :wk "Describe bindings")
+   "h r r" '((lambda () (interactive)
+               (load-file "~/.config/emacs/init.el")
+               (ignore (elpaca-process-queues)))
+             :wk "Reload emacs config"))
+
+  (my/leader-keys
+    "RET" '(bookmark-jump :wk "Describe bindings"))
+
+  (my/leader-keys
+   "b" '(:ignore t :wk "Bookmarks")
+   "b s" '(bookmark-set :wk "Bookmark set")
+   "b M" '(bookmark-delete :wk "Bookmark delete"))
+
+  (my/leader-keys
+   "w" '(:ignore t :wk "Windows")
+   ;; Window splits
+   "w d" '(evil-window-delete :wk "Close window")
+   "w n" '(evil-window-new :wk "New window")
+   "w s" '(evil-window-split :wk "Horizontal split window")
+   "w v" '(evil-window-vsplit :wk "Vertical split window")
+   ;; Window motions
+   "w h" '(evil-window-left :wk "Window left")
+   "w j" '(evil-window-down :wk "Window down")
+   "w k" '(evil-window-up :wk "Window up")
+   "w l" '(evil-window-right :wk "Window right")
+   "w w" '(evil-window-next :wk "Goto next window")
+   ;; Move Windows
+   "w H" '(buf-move-left :wk "Buffer move left")
+   "w J" '(buf-move-down :wk "Buffer move down")
+   "w K" '(buf-move-up :wk "Buffer move up")
+   "w L" '(buf-move-right :wk "Buffer move right")
+   ;; Maxamize Windows
+   "w m m" '(delete-other-windows :wk "Maximize buffer")
+   "w m v" '(delete-other-windows-vertically :wk "Maximize buffer vertically")
+   "w m s" '(delete-other-windows-horizontally :wk "Maximize buffer horizontally"))
+  
+  (my/leader-keys
+   "p" '(:ignore t :wk "projects")
+   "p !" '(projectile-run-shell-command-in-root :wk "")
+   "p &" '(projectile-run-async-shell-command-in-root :wk "")
+   "p C" '(projectile-repeat-last-command :wk "")
+   "p R" '(projectile-run-project :wk "")
+   "p T" '(projectile-test-project :wk "")
+   "p a" '(projectile-add-known-project :wk "")
+   "p b" '(projectile-switch-to-buffer :wk "")
+   "p c" '(projectile-compile-project :wk "")
+   "p d" '(projectile-remove-known-project :wk "")
+   "p e" '(projectile-edit-dir-locals :wk "")
+   "p f" '(projectile-find-file :wk "")
+   "p g" '(projectile-configure-project :wk "")
+   "p k" '(projectile-kill-buffers :wk "")
+   "p p" '(projectile-switch-project :wk "")
+   "p r" '(projectile-recentf :wk ""))
+
+  (my/leader-keys
+   "TAB" '(:ignore t :wk "workspaces")
+   "TAB ." '(tab-bar-switch-to-tab :wk "switch to")
+   "TAB 0" '(tab-bar-switch-to-last-tab :wk "switch to final")
+   "TAB 1" '((lambda () (interactive) (tab-bar-select-tab 1)) :wk "switch to 0")
+   "TAB 2" '((lambda () (interactive) (tab-bar-select-tab 2)) :wk "switch to 1")
+   "TAB 3" '((lambda () (interactive) (tab-bar-select-tab 3)) :wk "switch to 2")
+   "TAB 4" '((lambda () (interactive) (tab-bar-select-tab 4)) :wk "switch to 3")
+   "TAB 5" '((lambda () (interactive) (tab-bar-select-tab 5)) :wk "switch to 4")
+   "TAB 6" '((lambda () (interactive) (tab-bar-select-tab 6)) :wk "switch to 5")
+   "TAB 7" '((lambda () (interactive) (tab-bar-select-tab 7)) :wk "switch to 6")
+   "TAB 8" '((lambda () (interactive) (tab-bar-select-tab 8)) :wk "switch to 7")
+   "TAB 9" '((lambda () (interactive) (tab-bar-select-tab 9)) :wk "switch to 8")
+   "TAB D" '(tab-bar-close-other-tabs :wk "delete")
+   "TAB N" '(tab-bar-new-tab :wk "new named")
+   "TAB [" '(tab-bar-switch-to-prev-tab :wk "switch left")
+   "TAB ]" '(tab-bar-switch-to-next-tab :wk "switch right")
+   "TAB `" '(tab-bar-switch-to-recent-tab :wk "other")
+   "TAB d" '(tab-bar-close-tab :wk "kill")
+   "TAB n" '(tab-bar-new-tab :wk "new")
+   "TAB r" '(tab-bar-rename-tab :wk "rename"))
+  )
+#+end_src
+
+** Minibuffer ESC
+
+#+begin_src emacs-lisp
+(global-set-key [escape] 'keyboard-escape-quit)
+#+end_src
+
+** Zoom in/out
+
+#+begin_src emacs-lisp
+(global-set-key (kbd "C-=") 'text-scale-increase)
+(global-set-key (kbd "C--") 'text-scale-decrease)
+(global-set-key (kbd "C-0") 'text-scale-adjust)
+(global-set-key (kbd "<C-wheel-up>") 'text-scale-increase)
+(global-set-key (kbd "<C-wheel-down>") 'text-scale-decrease)
+#+end_src
+
+* All the icons
+
+#+begin_example emacs-lisp
+(use-package all-the-icons
+  :ensure t
+  :if (display-graphic-p))
+
+(use-package all-the-icons-dired
+  :ensure t
+  :hook (dired-mode . all-the-icons-dired-mode))
+#+end_example
+
+* Org Mode
+
+** Org Directory
+
+#+begin_src emacs-lisp
+(setq org-directory "~/dirs/documents/org/")
+#+end_src
+
+** Correct Weekend
+
+#+begin_src emacs-lisp
+(setq org-agenda-start-on-weekday 0
+      org-agenda-weekend-days '(5 6)
+      calendar-weekend-days '(5 6))
+#+end_src
+
+** Enabling TOC
+
+#+begin_src emacs-lisp
+(use-package toc-org
+  :ensure t
+  :demand t
+  :commands toc-org-enable
+  :init (add-hook 'org-mode-hook 'toc-org-enable))
+#+end_src
+
+** Enabling Org Bullets
+
+Org-bullets gives us attractive bullets rather than asterisks.
+
+#+begin_src emacs-lisp
+(add-hook 'org-mode-hook 'org-indent-mode)
+(use-package org-bullets
+  :ensure t
+  :demand t
+  :config
+  (setq org-bullets-bullet-list
+        '(    ""
+              ""
+              "󱇪"
+              ""
+              )))
+(add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
+#+end_src
+
+** Heading sizes
+
+#+begin_src emacs-lisp
+(custom-set-faces
+ '(org-level-8 ((t (:inherit outline-3 :height 1.0 :weight bold))))
+ '(org-level-7 ((t (:inherit outline-3 :height 1.0 :weight bold))))
+ '(org-level-6 ((t (:inherit outline-3 :height 1.1 :weight bold))))
+ '(org-level-5 ((t (:inherit outline-3 :height 1.2 :weight bold))))
+ '(org-level-4 ((t (:inherit outline-3 :height 1.3 :weight bold))))
+ '(org-level-3 ((t (:inherit outline-3 :height 1.4 :weight bold))))
+ '(org-level-2 ((t (:inherit outline-2 :height 1.5 :weight bold))))
+ '(org-level-1 ((t (:inherit outline-1 :height 1.6 :weight bold)))))
+#+end_src
+
+** Disable Electric Indent
+
+Org mode source blocks have some really weird and annoying default indentation behavior.  I think this has to do with electric-indent-mode, which is turned on by default in Emacs.  So let’s turn it OFF!
+
+#+begin_src emacs-lisp
+(electric-indent-mode -1)
+(setq org-edit-src-content-indentation 0)
+#+end_src
+
+** Source Code Block Tag Expansion
+
+Org-tempo is not a separate package but a module within org that can be enabled.  Org-tempo allows for ‘<s’ followed by TAB to expand to a begin_src tag.  Other expansions available include:
+
+#+begin_src emacs-lisp
+(require 'org-tempo)
+#+end_src
+
+** Auto-tangle
+
+#+begin_src emacs-lisp
+(use-package org-auto-tangle
+  :ensure t
+  :demand t
+  :defer t
+  :hook (org-mode . org-auto-tangle-mode))
+#+end_src
+
+** Org Roam
+
+#+begin_src emacs-lisp
+(use-package org-roam
+  :ensure t
+  :demand t
+  :config
+  (setq org-roam-directory "~/dirs/documents/roam/")
+  (org-roam-db-autosync-mode))
+#+end_src
+
+* Dired
+
+#+begin_src emacs-lisp
+(use-package dired-open
+  :ensure t
+  :config
+  (setq dired-open-extensions '(("gif" . "sxiv")
+                                ("jpg" . "sxiv")
+                                ("png" . "sxiv")
+                                ("mkv" . "mpv")
+                                ("mp4" . "mpv"))))
+#+end_src
+
+* Ido
+
+#+begin_src emacs-lisp
+(ido-mode 1)
+(ido-everywhere 1)
+
+(use-package smex
+  :ensure t
+  :demand t
+  :config (global-set-key (kbd "M-x") 'smex)
+  (global-set-key (kbd "C-c C-c M-x") 'smex))
+
+(use-package ido-completing-read+
+  :ensure t
+  :demand t)
+
+(use-package ido-vertical-mode
+  :ensure t
+  :demand t
+  :config (ido-vertical-mode 1)
+  (setq ido-vertical-define-keys 'C-n-and-C-p-only))
+#+end_src
+
+* Sudo edit
+
+#+begin_src emacs-lisp
+(use-package sudo-edit
+  :ensure t
+  :config
+    (my/leader-keys
+      "fu" '(sudo-edit-find-file :wk "Sudo find file")
+      "fU" '(sudo-edit :wk "Sudo edit file")))
+#+end_src
+
+* Shells and terms
+
+** Eshell
+
+#+begin_src emacs-lisp
+(use-package eshell-syntax-highlighting
+  :ensure t
+  :after esh-mode
+  :config (eshell-syntax-highlighting-global-mode +1))
+#+end_src
+
+*** Aliases
+
+#+begin_example emacs-lisp
+(set-eshell-alias! "ip" "ip -c $*"
+                   "rm" "rm -Iv $*"
+                   "ls" "eza --icons=always --group-directories-first $*"
+                   "ll" "ls -la --git $*"
+                   "dir" "ll ./*"
+                   "tree" "ls -Ta -I '.git|target' $*"
+                   "trash" "ll ~/.local/share/trash"
+                   "cls" "clear"
+                   "clr" "cls && fastfetch -c $HOME/.config/fastfetch/config.json && prayer"
+                   "bat" "bat --style plain --color=always $*"
+                   "ping" "ping -c 3 $*"
+                   "dl" "wget -cq --show-progress $*")
+#+end_example
+
+#+begin_example emacs-lisp
+(set-eshell-alias! "xi" "doas xbps-install -S $*"
+                   "xq" "doas xbps-query -Rs $*"
+                   "xr" "doas xbps-remove -R $*"
+                   "xo" "xr -Oo"
+                   "xu" "xi && doas xbps-install -uy xbps && doas xbps-install -uy && xo && pkill -RTMIN+14 dwmblocks")
+#+end_example
+
+#+begin_example emacs-lisp
+(set-eshell-alias! "cargo" "cargo --color=always $*"
+                   "cargo-update" "cargo install-update -a")
+#+end_example
+
+#+begin_example emacs-lisp
+(set-eshell-alias! "py" "python"
+                   "pipu" "pip install --upgrade pip")
+#+end_example
+
+** Vterm
+
+#+begin_src emacs-lisp
+(use-package vterm
+  :ensure t)
+#+end_src
+
+*** multi-vterm
+
+#+begin_src emacs-lisp
+(use-package multi-vterm
+  :ensure t
+  :demand t)
+#+end_src
+
+* Diminish
+
+#+begin_src emacs-lisp
+(use-package diminish
+  :ensure t
+  :demand t)
+#+end_src
+
+* Highlight Todo
+
+#+begin_src emacs-lisp
+(use-package hl-todo
+  :ensure t
+  :demand t)
+#+end_src
+
+* TLDR
+
+#+begin_src emacs-lisp
+(use-package tldr
+  :ensure t
+  :demand t)
+#+end_src
+
+* Undo tree
+
+#+begin_src emacs-lisp
+(use-package undo-tree
+  :ensure t
+  :config
+  (global-undo-tree-mode)
+  (setq undo-tree-auto-save-history t)
+  (setq undo-tree-history-directory-alist '(("." . "~/.config/emacs/undo"))))
+#+end_src
+
+* IDE
+
+** LSPs
+
+#+begin_src emacs-lisp
+(use-package lsp-mode
+  :ensure t
+  :demand t)
+(use-package rustic
+  :ensure t)
+(use-package svelte-mode
+  :ensure t)
+(use-package web-mode
+  :ensure t)
+#+end_src
+
+*** TailwindCSS
+
+#+begin_src emacs-lisp
+(use-package lsp-tailwindcss
+  :ensure t
+  :demand t
+  :after lsp-mode
+  :init
+  (setq lsp-tailwindcss-add-on-mode t
+        lsp-tailwindcss-skip-config-check t
+        lsp-tailwindcss-experimental-class-regex nil)
+  :config
+  (setq lsp-tailwindcss-major-modes '(svelte-mode rjsx-mode web-mode html-mode css-mode typescript-mode typescript-tsx-mode)))
+#+end_src
+
+** Flycheck
+
+#+begin_src emacs-lisp
+(use-package flycheck
+  :ensure t
+  :diminish t
+  :init (global-flycheck-mode))
+#+end_src
+
+** Company
+
+#+begin_src emacs-lisp
+(use-package company
+  :ensure t
+  :demand t
+  :defer 2
+  :diminish
+  :custom
+  (company-begin-commands '(self-insert-command))
+  (company-idle-delay .1)
+  (company-minimum-prefix-length 2)
+  (company-show-numbers t)
+  (company-tooltip-align-annotations 't)
+  (global-company-mode t))
+
+(use-package company-box
+  :ensure t
+  :after company
+  :diminish
+  :hook (company-mode . company-box-mode))
+#+end_src
+
+** apheleia
+
+#+begin_src emacs-lisp
+(use-package apheleia
+  :ensure t
+  :demand t)
+  ;; :config
+  ;; (setf (alist-get 'markdown-mode apheleia-mode-alist) '(prettier-markdown))
+  ;; (setf (alist-get 'conf-toml-mode apheleia-mode-alist) '(taplo)))
+#+end_src
+
+** Magit
+
+#+begin_src emacs-lisp
+(elpaca (magit :branch "main" :pre-build ("make" "info")))
+(elpaca (forge :branch "main"))
+(elpaca (ghub :branch "main"))
+(elpaca (transient :branch "main"))
+(elpaca (with-editor :branch "main"))
+
+(use-package magit
+  :ensure nil
+  :commands magit-status)
+#+end_src
+
+** Projectile
+
+#+begin_src emacs-lisp
+(use-package projectile
+  :ensure t
+  :diminish t
+  :config (projectile-mode 1))
+#+end_src
+
+** Rainbow
+
+#+begin_src emacs-lisp
+(use-package rainbow-delimiters
+  :ensure t
+  :diminish t
+  :hook ((emacs-lisp-mode . rainbow-delimiters-mode)
+	 (clojure-mode . rainbow-delimiters-mode)))
+
+(use-package rainbow-mode
+  :ensure t
+  :diminish t
+  :hook org-mode)
+#+end_src
