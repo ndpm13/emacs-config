@@ -1,0 +1,4 @@
+#+TITLE: Naz's Emacs Config
+#+AUTHOR: Naz <ndpm13@ch-naseem.com>
+
+...
